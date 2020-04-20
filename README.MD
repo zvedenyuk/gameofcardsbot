@@ -22,21 +22,21 @@ telebotProxy={'https':'socks5h://'}
 Create file `cards.py` where you store database of texts for your cads:
 ```
 cards = {
-  "default set":{
-    "white": [
-      "White card 1",
-      "White card 2",
-      ...
-      ],  
-    "black": [
-      "Black card 1",
-      "Black card 2",
-      ...
-      ],   
-    "black2": [
-      "Black card with 2 spaces",
-      ...
-      ]
-  }
+	"default set":{
+		"white": [
+			"White card 1",
+			"White card 2",
+			...
+			],
+		"black": [
+			"Black card 1",
+			"Black card 2",
+			...
+			],
+		"black2": [
+			"Black card with 2 spaces",
+			...
+			]
+		}
 }
 ```

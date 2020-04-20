@@ -15,6 +15,7 @@ appDir=os.path.abspath(os.path.dirname(__file__))
 apihelper.proxy = telebotProxy
 bot = telebot.TeleBot(botToken)
 
+# Базы данных юзера и игры находятся в классе Db в словарях db.user и db.game соответственно. После внесения важных изменений необходимо вызвать функцию db.db_save_user() или db.db_load_game() соответственно.
 class Db():
 	def __init__(self):
 		self.userId=""
@@ -31,8 +32,24 @@ class Db():
 	def db_save_user(self):
 		if self.userId!="":
 			filename = appDir+"/db/users/"+str(self.userId)+".json"
-			if self.user and self.user!="":
+			if self.user and self.user!={} and self.user!="":
 				fiw(filename,json.dumps(self.user, indent=4))
+	def db_load_game(self):
+		if self.gameId!="":
+			filename = appDir+"/db/games/"+str(self.gameId)+".json"
+			if os.path.isfile(filename):
+					self.game=json.loads(fir(filename))
+			if not self.game: self.game={}
+	def db_save_user(self):
+		if self.gameId!="":
+			filename = appDir+"/db/games/"+str(self.gameId)+".json"
+			if self.game and self.game!={} and self.game!="":
+				fiw(filename,json.dumps(self.game, indent=4))
+
+# Вся основная механика игры реализовывается в классе Game
+class Game():
+	def __init__(self):
+		pass
 
 def msg(id,text=""):
 	bot.send_message(db.chatId,txt[db.user["lang"]][id]+str(text),parse_mode="Markdown")
@@ -69,6 +86,7 @@ def hello(message):
 
 if __name__ == "__main__":
 	db=Db()
+	game=Game()
 	bot.polling(none_stop=True,interval=5,timeout=100)
 '''while True:
 	try:
