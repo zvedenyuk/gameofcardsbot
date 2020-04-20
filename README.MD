@@ -1,6 +1,6 @@
-#Game Of Cards bot for Telegram
+# Game Of Cards bot for Telegram
 
-##Setup
+## Setup
 
 First, install all needed packages from `requirements.txt`:
 
