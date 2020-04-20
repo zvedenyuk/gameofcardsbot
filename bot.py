@@ -2,6 +2,8 @@
 import sys
 import os
 import time
+from random import randint
+import json
 from utils import *
 from botConfig import *
 from cards import *
@@ -21,7 +23,6 @@ class Db():
 		self.userId=""
 		self.chatId=""
 		self.user={}
-		self.gameId=""
 		self.game={}
 	def db_load_user(self):
 		if self.userId!="":
@@ -35,14 +36,14 @@ class Db():
 			if self.user and self.user!={} and self.user!="":
 				fiw(filename,json.dumps(self.user, indent=4))
 	def db_load_game(self):
-		if self.gameId!="":
-			filename = appDir+"/db/games/"+str(self.gameId)+".json"
+		if self.user["room"]!="":
+			filename = appDir+"/db/games/"+str(self.user["room"])+".json"
 			if os.path.isfile(filename):
 					self.game=json.loads(fir(filename))
 			if not self.game: self.game={}
-	def db_save_user(self):
-		if self.gameId!="":
-			filename = appDir+"/db/games/"+str(self.gameId)+".json"
+	def db_save_game(self):
+		if self.user["room"]!="":
+			filename = appDir+"/db/games/"+str(self.user["room"])+".json"
 			if self.game and self.game!={} and self.game!="":
 				fiw(filename,json.dumps(self.game, indent=4))
 
@@ -51,8 +52,10 @@ class Game():
 	def __init__(self):
 		pass
 
-def msg(id,text=""):
-	bot.send_message(db.chatId,txt[db.user["lang"]][id]+str(text),parse_mode="Markdown")
+def msg(id,text="",chat=False,lang=False):
+	if chat==False: chat=db.chatId
+	if lang==False: lang=db.user["lang"]
+	bot.send_message(db.chatId,txt[lang][id]+str(text),parse_mode="Markdown")
 
 @bot.message_handler(content_types=['text'])
 def main(message):
@@ -62,27 +65,68 @@ def main(message):
 	try: db.user["lang"]
 	except KeyError:
 		bot.send_message(message.chat.id,"*log1* "+str(message.text),parse_mode="Markdown")
-		bot.send_message(message.chat.id,txt["default"]["chooseLanguage"],parse_mode= "Markdown")
-		bot.register_next_step_handler(message, hello)
+		msg("chooseLanguage",lang="default")
+		bot.register_next_step_handler(message, change_language)
 		return False
-	if db.user["step"]=="main":
-		if message.text=="/create":
-			msg("create",2423523)
-		elif message.text=="/join":
-			msg("join")
 	if message.text=="/hey":
 		print "ping"
 		bot.send_message(message.chat.id,"*Hi!*",parse_mode="Markdown")
+	elif db.user["step"]=="main":
+		if message.text=="/create":
+			room=44
+			while os.path.exists(appDir+"/db/games/"+str(room)+".json"):
+				room=randint(10000,99999)
+			fiw(appDir+"/db/games/"+str(room)+".json",json.dumps({"admin":db.userId}))
+			msg("create",room)
+			db.user["step"]="created"
+			db.user["room"]=str(room)
+			db.db_save_user()
+			msg("created")
+		elif message.text=="/join":
+			msg("join")
+			bot.register_next_step_handler(message, room_join)
+		elif message.text=="/lang":
+			msg("chooseLanguage",lang="default")
+			bot.register_next_step_handler(message, change_language)
+		else:
+			msg("hello")
+	elif db.user["step"]=="created":
+		if message.text=="/cancel":
+			db.user["step"]="main"
+			db.user["room"]=""
+			db.db_save_user()
+			msg("hello")
+		else:
+			msg("created")
+	elif db.user["step"]=="joined":
+		db.db_load_game()
+		msg("joined")
 
-def hello(message):
-	if message.text=="/en" or  message.text=="/ru":
+def change_language(message):
+	if message.text=="/en" or message.text=="/ru":
 		db.user["lang"]=message.text.replace("/","")
 		db.user["step"]="main"
+		db.db_save_user()
 		msg("hello")
 	else:
 		bot.send_message(message.chat.id,"*log2* "+message.text,parse_mode="Markdown")
-		bot.send_message(message.chat.id,txt["default"]["chooseLanguage"],parse_mode= "Markdown")
-		bot.register_next_step_handler(message, hello)
+		msg("chooseLanguage",lang="default")
+		bot.register_next_step_handler(message, change_language)
+
+def room_join(message):
+	if message.text=="/cancel":
+		msg("hello")
+	else:
+		if not os.path.exists(appDir+"/db/games/"+str(message.text)+".json"):
+			msg("join")
+			bot.register_next_step_handler(message, room_join)
+		else:
+			db.user["step"]="joined"
+			db.user["room"]=str(message.text)
+			db.db_save_user()
+			db.db_load_game()
+			msg("adminJoined",text="@"+str(message.from_user.username),chat=db.game["admin"])
+			msg("joined",message.text)
 
 if __name__ == "__main__":
 	db=Db()
