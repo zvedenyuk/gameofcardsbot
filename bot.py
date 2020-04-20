@@ -17,6 +17,13 @@ appDir=os.path.abspath(os.path.dirname(__file__))
 apihelper.proxy = telebotProxy
 bot = telebot.TeleBot(botToken)
 
+if not os.path.exists(appDir+"/db"):
+	os.mkdir(appDir+"/db")
+if not os.path.exists(appDir+"/db/users"):
+	os.mkdir(appDir+"/db/users")
+if not os.path.exists(appDir+"/db/games"):
+	os.mkdir(appDir+"/db/games")
+
 # Базы данных юзера и игры находятся в классе Db в словарях db.user и db.game соответственно. После внесения важных изменений необходимо вызвать функцию db.db_save_user() или db.db_load_game() соответственно.
 class Db():
 	def __init__(self):
@@ -76,7 +83,8 @@ def main(message):
 			room=44
 			while os.path.exists(appDir+"/db/games/"+str(room)+".json"):
 				room=randint(10000,99999)
-			fiw(appDir+"/db/games/"+str(room)+".json",json.dumps({"admin":db.userId}))
+			game={"admin":db.userId,"players":[db.userId]}
+			fiw(appDir+"/db/games/"+str(room)+".json",json.dumps(game))
 			msg("create",room)
 			db.user["step"]="created"
 			db.user["room"]=str(room)
@@ -125,6 +133,8 @@ def room_join(message):
 			db.user["room"]=str(message.text)
 			db.db_save_user()
 			db.db_load_game()
+			db.game["players"].append(message.from_user.id)
+			db.db_save_game()
 			msg("adminJoined",text="@"+str(message.from_user.username),chat=db.game["admin"])
 			msg("joined",message.text)
 
