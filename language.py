@@ -10,6 +10,8 @@ txt={
 		"join":"Введите номер комнаты\n\n/cancel — Отмена",
 		"joined":"Вы вошли в комнату ",
 		"adminJoined":"Новый игрок в комнате: ",
+		"adminExited":"Игрок вышел из комнаты: ",
+		"gameStarted":"Игра началась!\n\nСписок игроков:\n",
 		"chooseWinnerOrSkip":"Сначала выберите победителя или пропустите карту",
 	},
 	"en":{
@@ -19,6 +21,8 @@ txt={
 		"join":"Type your room number\n\n/cancel — Return back",
 		"joined":"You've entered the room ",
 		"adminJoined":"New player joined: ",
+		"adminExited":"The player exited the room: ",
+		"gameStarted":"The game has started!\n\nPlayers list:\n",
 		"chooseWinnerOrSkip":"You need to choose winner or skip",
 	}
 }
