@@ -24,136 +24,141 @@ if not os.path.exists(appDir+"/db/users"):
 if not os.path.exists(appDir+"/db/games"):
 	os.mkdir(appDir+"/db/games")
 
-# Базы данных юзера и игры находятся в классе Db в словарях db.user и db.game соответственно. После внесения важных изменений необходимо вызвать функцию db.save_user() или db.load_game() соответственно.
+# Базы данных юзеров и игр находятся в классе Db в словарях db.user и db.game соответственно. После внесения важных изменений необходимо вызвать функцию db.save_user(message.chat.id) или db.save_game(message.chat.id) соответственно.
 class Db():
 	def __init__(self):
 		self.userId=""
 		self.chatId=""
 		self.user={}
 		self.game={}
-	def load_user(self):
-		if self.userId!="":
-			filename = appDir+"/db/users/"+str(self.userId)+".json"
+	def load_user(self,userId):
+		filename = appDir+"/db/users/"+str(userId)+".json"
+		if os.path.isfile(filename):
+				self.user[userId]=json.loads(fir(filename))
+		if not self.user[userId]: self.user[userId]={}
+	def save_user(self,userId):
+		filename = appDir+"/db/users/"+str(userId)+".json"
+		if self.user[userId] and self.user[userId]!={} and self.user[userId]!="":
+			fiw(filename,json.dumps(self.user[userId], indent=4))
+	def load_game(self,userId):
+		try: gameId=self.user[userId]["room"]
+		except KeyError: return False
+		if gameId!="":
+			filename = appDir+"/db/games/"+str(gameId)+".json"
 			if os.path.isfile(filename):
-					self.user=json.loads(fir(filename))
-			if not self.user: self.user={}
-	def save_user(self):
-		if self.userId!="":
-			filename = appDir+"/db/users/"+str(self.userId)+".json"
-			if self.user and self.user!={} and self.user!="":
-				fiw(filename,json.dumps(self.user, indent=4))
-	def load_game(self):
-		if self.user["room"]!="":
-			filename = appDir+"/db/games/"+str(self.user["room"])+".json"
-			if os.path.isfile(filename):
-					self.game=json.loads(fir(filename))
-			if not self.game: self.game={}
-	def save_game(self):
-		if self.user["room"]!="":
-			filename = appDir+"/db/games/"+str(self.user["room"])+".json"
-			if self.game and self.game!={} and self.game!="":
-				fiw(filename,json.dumps(self.game, indent=4))
+				self.game[gameId]=json.loads(fir(filename))
+			if not self.game[gameId]: self.game[gameId]={}
+	def save_game(self,userId):
+		try: gameId=self.user[userId]["room"]
+		except KeyError: return False
+		if gameId!="":
+			filename = appDir+"/db/games/"+str(gameId)+".json"
+			if self.game[gameId] and self.game[gameId]!={} and self.game[gameId]!="":
+				fiw(filename,json.dumps(self.game[gameId], indent=4))
 
 # Вся основная механика игры реализовывается в классе Game
 class Game():
 	def __init__(self):
 		pass
 
-def msg(id,text="",chat=False,lang=False):
-	if chat==False: chat=db.chatId
-	if lang==False: lang=db.user["lang"]
-	bot.send_message(db.chatId,txt[lang][id]+str(text),parse_mode="Markdown")
+def msg(chat,id,text="",lang=False):
+	if lang==False: lang=db.user[chat]["lang"]
+	bot.send_message(chat,txt[lang][id]+str(text),parse_mode="Markdown")
 
 @bot.message_handler(content_types=['text'])
 def main(message):
-	if db.userId=="": db.userId=message.from_user.id
-	if db.chatId=="": db.chatId=message.chat.id
-	db.load_user()
-	db.load_game()
-	try: db.user["lang"]
+	db.load_user(message.chat.id)
+	db.load_game(message.chat.id)
+	try: db.user[message.chat.id]["lang"]
 	except KeyError:
-		msg("chooseLanguage",lang="default")
+		msg(message.chat.id,"chooseLanguage",lang="default")
 		bot.register_next_step_handler(message, change_language)
 		return False
-	if db.user["step"]=="main":
+	if db.user[message.chat.id]["step"]=="main":
 		if message.text=="/create":
 			room=44
 			while os.path.exists(appDir+"/db/games/"+str(room)+".json"):
 				room=randint(10000,99999)
-			db.user["step"]="created"
-			db.user["room"]=str(room)
-			db.game={"admin":db.userId,"players":[db.userId],"nicknames":{},"status":"preparing"}
-			db.save_game()
-			db.save_user()
-			msg("chooseName")
+			db.user[message.chat.id]["step"]="created"
+			db.user[message.chat.id]["room"]=str(room)
+			db.game[db.user[message.chat.id]["room"]] = {"admin":message.chat.id,"players":[message.chat.id],"nicknames":{},"status":"preparing"}
+			db.save_game(message.chat.id)
+			db.save_user(message.chat.id)
+			msg(message.chat.id,"chooseName")
 			bot.register_next_step_handler(message, choose_name)
 		elif message.text=="/join":
-			msg("join")
+			msg(message.chat.id,"join")
 			bot.register_next_step_handler(message, room_join)
 		elif message.text=="/lang":
-			msg("chooseLanguage",lang="default")
+			msg(message.chat.id,"chooseLanguage",lang="default")
 			bot.register_next_step_handler(message, change_language)
 		else:
-			msg("hello")
-	elif db.user["step"]=="created":
+			msg(message.chat.id,"hello")
+	elif db.user[message.chat.id]["step"]=="created":
 		if message.text=="/game":
-			db.game["status"]="started"
-			db.save_game()
-			for player in db.game["players"]:
-				db.game["status"]="started"
-				msg("gameStarted","\n".join(str(db.game["nicknames"][str(v)]) for v in db.game["players"]))
+			db.game[db.user[message.chat.id]["room"]]["status"]="started"
+			db.user[message.chat.id]["step"]="started"
+			db.save_game(message.chat.id)
+			db.save_user(message.chat.id)
+			for player in db.game[db.user[message.chat.id]["room"]]["players"]:
+				db.game[db.user[message.chat.id]["room"]]["status"]="started"
+				msg(player,"gameStarted","\n".join(str(db.game[db.user[message.chat.id]["room"]]["nicknames"][str(v)]) for v in db.game[db.user[message.chat.id]["room"]]["players"]))
 		elif message.text=="/cancel":
-			db.user["step"]="main"
-			db.user["room"]=""
-			db.save_user()
-			msg("hello")
+			db.user[message.chat.id]["step"]="main"
+			db.user[message.chat.id]["room"]=""
+			db.save_user(message.chat.id)
+			msg(message.chat.id,"hello")
 		else:
-			msg("created")
-	elif db.user["step"]=="joined":
-		if db.game["status"]=="started":
-			pass
+			msg(message.chat.id,"created")
+	elif db.user[message.chat.id]["step"]=="joined":
+		if db.game[db.user[message.chat.id]["room"]]["status"]=="started":
+			db.user[message.chat.id]["step"]="started"
+			db.save_user(message.chat.id)
+			main(message)
 		else:
-			msg("joinedWait")
+			msg(message.chat.id,"joinedWait")
+	elif db.user[message.chat.id]["step"]=="started":
+		msg(message.chat.id,"chooseWinnerOrSkip")
 
 def change_language(message):
 	if message.text=="/en" or message.text=="/ru":
-		db.user["lang"]=message.text.replace("/","")
-		db.user["step"]="main"
-		db.save_user()
-		msg("hello")
+		db.user[message.chat.id]["lang"]=message.text.replace("/","")
+		db.user[message.chat.id]["step"]="main"
+		db.save_user(message.chat.id)
+		msg(message.chat.id,"hello")
 	else:
-		msg("chooseLanguage",lang="default")
+		msg(message.chat.id,"chooseLanguage",lang="default")
 		bot.register_next_step_handler(message, change_language)
 
 def room_join(message):
 	if message.text=="/cancel":
-		msg("hello")
+		msg(message.chat.id,"hello")
 	else:
 		if not os.path.exists(appDir+"/db/games/"+str(message.text)+".json"):
-			msg("join")
+			msg(message.chat.id,"join")
 			bot.register_next_step_handler(message, room_join)
 		else:
-			db.user["step"]="joined"
-			db.user["room"]=str(message.text)
-			db.save_user()
-			db.load_game()
-			db.game["players"].append(message.from_user.id)
-			db.save_game()
-			msg("chooseName")
+			db.user[message.chat.id]["step"]="joined"
+			db.user[message.chat.id]["room"]=str(message.text)
+			db.save_user(message.chat.id)
+			db.load_game(message.chat.id)
+			db.game[db.user[message.chat.id]["room"]]["players"].append(message.from_user.id)
+			db.save_game(message.chat.id)
+			msg(message.chat.id,"chooseName")
 			bot.register_next_step_handler(message, choose_name)
 
 def choose_name(message):
-	db.user["nickname"]=str(message.text)
-	db.game["nicknames"][db.userId]=str(message.text)
-	db.save_user()
-	db.save_game()
-	if db.user["step"]=="joined":
-		msg("adminJoined",text=db.user["nickname"],chat=db.game["admin"])
-		msg("joined",db.user["room"])
-		msg("joinedWait")
-	if db.user["step"]=="created":
-		msg("create",db.user["room"])
-		msg("created")
+	db.user[message.chat.id]["nickname"]=str(message.text)
+	db.game[db.user[message.chat.id]["room"]]["nicknames"][message.chat.id]=str(message.text)
+	db.save_user(message.chat.id)
+	db.save_game(message.chat.id)
+	if db.user[message.chat.id]["step"]=="joined":
+		msg(db.game[db.user[message.chat.id]["room"]]["admin"],"adminJoined",text=db.user[message.chat.id]["nickname"])
+		msg(message.chat.id,"joined",db.user[message.chat.id]["room"])
+		msg(message.chat.id,"joinedWait")
+	if db.user[message.chat.id]["step"]=="created":
+		msg(message.chat.id,"create",db.user[message.chat.id]["room"])
+		msg(message.chat.id,"created")
 
 
 if __name__ == "__main__":
