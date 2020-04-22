@@ -35,7 +35,8 @@ class Db():
 		filename = appDir+"/db/users/"+str(userId)+".json"
 		if os.path.isfile(filename):
 				self.user[userId]=json.loads(fir(filename))
-		if not self.user[userId]: self.user[userId]={}
+		try: self.user[userId]
+		except KeyError: self.user[userId]={}
 	def save_user(self,userId):
 		filename = appDir+"/db/users/"+str(userId)+".json"
 		if self.user[userId] and self.user[userId]!={} and self.user[userId]!="":
@@ -47,7 +48,8 @@ class Db():
 			filename = appDir+"/db/games/"+str(gameId)+".json"
 			if os.path.isfile(filename):
 				self.game[gameId]=json.loads(fir(filename))
-			if not self.game[gameId]: self.game[gameId]={}
+			try: self.game[gameId]
+			except KeyError: self.game[gameId]={}
 	def save_game(self,userId):
 		try: gameId=self.user[userId]["room"]
 		except KeyError: return False
