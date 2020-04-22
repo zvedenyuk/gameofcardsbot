@@ -118,6 +118,7 @@ def main(message):
 		else:
 			msg(message.chat.id,"joinedWait")
 	elif db.user[message.chat.id]["step"]=="started":
+		#тут начинается игра. Сообщение ниже высылаю для теста, можно удалить
 		msg(message.chat.id,"chooseWinnerOrSkip")
 
 def change_language(message):
@@ -142,7 +143,7 @@ def room_join(message):
 			db.user[message.chat.id]["room"]=str(message.text)
 			db.save_user(message.chat.id)
 			db.load_game(message.chat.id)
-			db.game[db.user[message.chat.id]["room"]]["players"].append(message.from_user.id)
+			db.game[db.user[message.chat.id]["room"]]["players"].append(message.chat.id)
 			db.save_game(message.chat.id)
 			msg(message.chat.id,"chooseName")
 			bot.register_next_step_handler(message, choose_name)
