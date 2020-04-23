@@ -83,8 +83,6 @@ def main(message):
 				room=randint(10000,99999)
 			db.user[message.chat.id]["step"]="created"
 			db.user[message.chat.id]["room"]=str(room)
-			db.game[db.user[message.chat.id]["room"]] = {"admin":message.chat.id,"players":[message.chat.id],"nicknames":{},"status":"preparing"}
-			db.save_game(message.chat.id)
 			db.save_user(message.chat.id)
 			msg(message.chat.id,"chooseName")
 			bot.register_next_step_handler(message, choose_name)
@@ -144,14 +142,16 @@ def room_join(message):
 			db.user[message.chat.id]["step"]="joined"
 			db.user[message.chat.id]["room"]=str(message.text)
 			db.save_user(message.chat.id)
-			db.load_game(message.chat.id)
-			db.game[db.user[message.chat.id]["room"]]["players"].append(message.chat.id)
-			db.save_game(message.chat.id)
 			msg(message.chat.id,"chooseName")
 			bot.register_next_step_handler(message, choose_name)
 
 def choose_name(message):
 	db.user[message.chat.id]["nickname"]=str(message.text)
+	if db.user[message.chat.id]["step"]=="created":
+		db.game[db.user[message.chat.id]["room"]] = {"admin":message.chat.id,"players":[message.chat.id],"nicknames":{},"status":"preparing"}
+	if db.user[message.chat.id]["step"]=="joined":
+		db.load_game(message.chat.id)
+		db.game[db.user[message.chat.id]["room"]]["players"].append(message.chat.id)
 	db.game[db.user[message.chat.id]["room"]]["nicknames"][message.chat.id]=str(message.text)
 	db.save_user(message.chat.id)
 	db.save_game(message.chat.id)
