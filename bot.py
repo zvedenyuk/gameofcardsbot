@@ -12,6 +12,7 @@ import telebot
 from telebot import apihelper
 reload(sys)
 sys.setdefaultencoding('utf-8')
+from cards import *
 
 appDir=os.path.abspath(os.path.dirname(__file__))
 apihelper.proxy = telebotProxy
@@ -59,9 +60,48 @@ class Db():
 				fiw(filename,json.dumps(self.game[gameId], indent=4))
 
 # Вся основная механика игры реализовывается в классе Game
+stepsUser = {
+	"main": "main",
+	"created": "created",
+	"joined": "joined",
+	"started": "started",
+	"": ""
+
+}
+
+statusGame = {
+	"started": "started",
+	"turn": "turn",
+	"ended": "ended"
+
+}
+
 class Game():
 	def __init__(self):
+		wachterCounter = 0
+		playersNumber = 0
 		pass
+
+	def updateWachterCounter(self):
+		if self.wachterCounter == self.playersNumber:
+			self.wachterCounter = 0
+		else:
+			self.wachterCounter += 1
+
+	def turn(message):
+		db.load_game(message.chat.id)
+		db.load_user(message.chat.id)
+		if db.game[db.user[message.chat.id]["room"]]["status"] == statusGame["started"]:
+			db.game[db.user[message.chat.id]["room"]]["status"] = statusGame["turn"]
+			db.game[db.user[message.chat.id]["room"]]["wachter"] = db.game[db.user[message.chat.id]["room"]]["players"][game.wachterCounter]
+			game.updateWachterCounter()
+			# нужно дописать случай 1й раздачи
+		#нужно описать случай обычной раздачи
+
+
+
+
+
 
 def msg(chat,id,text="",lang=False):
 	if lang==False: lang=db.user[chat]["lang"]
@@ -103,6 +143,9 @@ def main(message):
 			for player in db.game[db.user[message.chat.id]["room"]]["players"]:
 				db.game[db.user[message.chat.id]["room"]]["status"]="started"
 				msg(player,"gameStarted","\n".join(str(db.game[db.user[message.chat.id]["room"]]["nicknames"][str(v)]) for v in db.game[db.user[message.chat.id]["room"]]["players"]))
+			game.playersNumber = len(db.game[db.user[message.chat.id]["room"]]["players"])
+			game.turn(message)
+
 		elif message.text=="/cancel":
 			db.user[message.chat.id]["step"]="main"
 			db.user[message.chat.id]["room"]=""
@@ -119,7 +162,7 @@ def main(message):
 			msg(message.chat.id,"joinedWait")
 	elif db.user[message.chat.id]["step"]=="started":
 		#тут начинается игра. Сообщение ниже высылаю для теста, можно удалить
-		msg(message.chat.id,"chooseWinnerOrSkip")
+		msg(message.chat.id,"turnStartWachter")
 
 def change_language(message):
 	if message.text=="/en" or message.text=="/ru":
@@ -148,7 +191,7 @@ def room_join(message):
 def choose_name(message):
 	db.user[message.chat.id]["nickname"]=str(message.text)
 	if db.user[message.chat.id]["step"]=="created":
-		db.game[db.user[message.chat.id]["room"]] = {"admin":message.chat.id,"players":[message.chat.id],"nicknames":{},"status":"preparing"}
+		db.game[db.user[message.chat.id]["room"]] = {"admin":message.chat.id,"players":[message.chat.id],"nicknames":{},"status":"preparing", "wachter":None, "turn":None, "table":{"black":None, "white":[]}, "hands":{}, "trashWhite":[], "trashBlack":[]}
 	if db.user[message.chat.id]["step"]=="joined":
 		db.load_game(message.chat.id)
 		db.game[db.user[message.chat.id]["room"]]["players"].append(message.chat.id)

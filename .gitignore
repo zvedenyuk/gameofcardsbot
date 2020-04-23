@@ -2,3 +2,6 @@
 .DS_Store
 botConfig.py
 cards.py
+test.py
+.idea
+51303.json

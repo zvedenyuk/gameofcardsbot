@@ -15,6 +15,7 @@ txt={
 		"adminExited":"Игрок вышел из комнаты: ",
 		"gameStarted":"Игра началась!\n\nСписок игроков:\n",
 		"chooseWinnerOrSkip":"Сначала выберите победителя или пропустите карту",
+		"turnStartWachter": "/black_card — Вытянуть черную карту\n /end_game — Закончить игру"
 	},
 	"en":{
 		"hello":"Hi!\n\n/create — Create a room\n/join — Join a room\n\n/lang — Change language",
