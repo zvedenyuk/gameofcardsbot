@@ -80,15 +80,20 @@ class Game():
 	def __init__(self):
 		wachterCounter = 0
 		playersNumber = 0
-		pass
 
 	def updateWachterCounter(self):
 		if self.wachterCounter == self.playersNumber:
 			self.wachterCounter = 0
 		else:
 			self.wachterCounter += 1
+		'''
+		Кажется, это можно сделать проще и, не используя отдельную переменную self.playersNumber:
+
+		self.wachterCounter=(self.wachterCounter+1)%len(db.game[db.user[message.chat.id]["room"]]["players"])
+		'''
 
 	def turn(message):
+		#Возможно, здесь можно не подгружать базы, так как мы их уже подгрузили в начале функции main(), а с этого момента не прошло много времени. Но если в дальнейшей логике предполагаются задержки, то ок, пусть будут
 		db.load_game(message.chat.id)
 		db.load_user(message.chat.id)
 		if db.game[db.user[message.chat.id]["room"]]["status"] == statusGame["started"]:
