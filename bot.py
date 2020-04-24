@@ -76,12 +76,27 @@ statusGame = {
 
 }
 
+
 class Game():
 	def __init__(self):
-		wachterCounter = 0
-		playersNumber = 0
+		self.playersNumber = 0
+		self.wachterCounter = 0
 
-	def updateWachterCounter(self):
+#TODO: прикрутить в cancel сбора статистики: game_ended (score <10) or not_finished(cancel not pressed) or successful_ending (score >=10)
+# Считаю, что room и nickname можно не чистить у юзера
+	def end_game(self, message):
+		db.load_game(message.chat.id)
+		db.game[db.user[message.chat.id]["room"]]["status"] = statusGame["ended"]
+		for player in db.game[db.user[message.chat.id]["room"]]["players"]:
+			db.load_user(player)
+			db.user[player]["step"] = "main"
+			msg(player, "gameEnded")
+			msg(player, "hello")
+			db.save_user(player)
+		db.save_game(message.chat.id)
+		bot.register_next_step_handler(message, main)
+
+	def update_wachter_counter(self):
 		if self.wachterCounter == self.playersNumber:
 			self.wachterCounter = 0
 		else:
@@ -91,15 +106,35 @@ class Game():
 
 		self.wachterCounter=(self.wachterCounter+1)%len(db.game[db.user[message.chat.id]["room"]]["players"])
 		'''
+	def check_card_hands_trash(self, card_type):
+		pass
 
-	def turn(message):
+	def create_hands(self):
+		pass
+
+	def pick_black_card(self):
+		pass
+
+	def switch_black_card(self):
+		pass
+
+	def turn(self, message):
+		if message.text == "/end_game":
+			self.end_game(message)
+
 		#Возможно, здесь можно не подгружать базы, так как мы их уже подгрузили в начале функции main(), а с этого момента не прошло много времени. Но если в дальнейшей логике предполагаются задержки, то ок, пусть будут
 		db.load_game(message.chat.id)
 		db.load_user(message.chat.id)
 		if db.game[db.user[message.chat.id]["room"]]["status"] == statusGame["started"]:
 			db.game[db.user[message.chat.id]["room"]]["status"] = statusGame["turn"]
 			db.game[db.user[message.chat.id]["room"]]["wachter"] = db.game[db.user[message.chat.id]["room"]]["players"][game.wachterCounter]
-			game.updateWachterCounter()
+			msg(message.chat.id, "firstTable")
+			bot.register_next_step_handler(message, game.turn)
+
+
+			# game.update_wachter_counter()
+
+
 			# нужно дописать случай 1й раздачи
 		#нужно описать случай обычной раздачи
 
@@ -149,7 +184,7 @@ def main(message):
 				db.game[db.user[message.chat.id]["room"]]["status"]="started"
 				msg(player,"gameStarted","\n".join(str(db.game[db.user[message.chat.id]["room"]]["nicknames"][str(v)]) for v in db.game[db.user[message.chat.id]["room"]]["players"]))
 			game.playersNumber = len(db.game[db.user[message.chat.id]["room"]]["players"])
-			game.turn(message)
+			main(message)
 
 		elif message.text=="/cancel":
 			db.user[message.chat.id]["step"]="main"
@@ -167,7 +202,8 @@ def main(message):
 			msg(message.chat.id,"joinedWait")
 	elif db.user[message.chat.id]["step"]=="started":
 		#тут начинается игра. Сообщение ниже высылаю для теста, можно удалить
-		msg(message.chat.id,"turnStartWachter")
+		msg(message.chat.id, "firstTable")
+		bot.register_next_step_handler(message, game.turn)
 
 def change_language(message):
 	if message.text=="/en" or message.text=="/ru":
@@ -176,7 +212,7 @@ def change_language(message):
 		db.save_user(message.chat.id)
 		msg(message.chat.id,"hello")
 	else:
-		msg(message.chat.id,"chooseLanguage",lang="default")
+		msg(message.chat.id,"chooseLanguage", lang="default")
 		bot.register_next_step_handler(message, change_language)
 
 def room_join(message):
@@ -196,7 +232,7 @@ def room_join(message):
 def choose_name(message):
 	db.user[message.chat.id]["nickname"]=str(message.text)
 	if db.user[message.chat.id]["step"]=="created":
-		db.game[db.user[message.chat.id]["room"]] = {"admin":message.chat.id,"players":[message.chat.id],"nicknames":{},"status":"preparing", "wachter":None, "turn":None, "table":{"black":None, "white":[]}, "hands":{}, "trashWhite":[], "trashBlack":[]}
+		db.game[db.user[message.chat.id]["room"]] = {"admin": message.chat.id, "players": [message.chat.id], "scores": {}, "nicknames": {}, "status": "preparing", "wachter": None, "turn":None, "table": {"black": None, "white": []}, "hands": {}, "trashWhite": [], "trashBlack": []}
 	if db.user[message.chat.id]["step"]=="joined":
 		db.load_game(message.chat.id)
 		db.game[db.user[message.chat.id]["room"]]["players"].append(message.chat.id)

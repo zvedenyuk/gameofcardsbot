@@ -15,7 +15,8 @@ txt={
 		"adminExited":"Игрок вышел из комнаты: ",
 		"gameStarted":"Игра началась!\n\nСписок игроков:\n",
 		"chooseWinnerOrSkip":"Сначала выберите победителя или пропустите карту",
-		"turnStartWachter": "/black_card — Вытянуть черную карту\n /end_game — Закончить игру"
+		"firstTable":"Меню ведущего:\n\n/black\_card — Вытянуть черную карту\n/end\_game — Закончить игру",
+		"gameEnded": "Игра завершена",
 	},
 	"en":{
 		"hello":"Hi!\n\n/create — Create a room\n/join — Join a room\n\n/lang — Change language",
@@ -31,3 +32,4 @@ txt={
 		"chooseWinnerOrSkip":"You need to choose winner or skip",
 	}
 }
+#TODO: перевести новые статусы из русского в англ.
