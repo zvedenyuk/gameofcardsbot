@@ -1,0 +1,19 @@
+{
+    "status": "preparing", 
+    "players": [
+        283585
+    ], 
+    "nicknames": {
+        "283585": "1"
+    }, 
+    "turn": null, 
+    "admin": 283585, 
+    "wachter": null, 
+    "hands": {}, 
+    "table": {
+        "white": [], 
+        "black": null
+    }, 
+    "trashBlack": [], 
+    "trashWhite": []
+}
