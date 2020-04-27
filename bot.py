@@ -122,8 +122,18 @@ class Game():
         #TODO: add status to function in retur. Или включитьь логгирование. Интересно попробовать
 
     def show_my_hand(self, player):
-        #TODO: shows hand of a player. Send player tg id
-        pass
+        db.load_game(player)
+        my_hand = db.game[db.user[player]["room"]]["hands"][str(player)]
+
+        if len(my_hand) == 9:
+            msg(int(player),"myHand", "/card1 {}\n\n/card2 {}\n\n/card3 {}\n\n/card4 {}\n\n/card5 {}\n\n/card6 {}\n\n/card7 {}\n\n/card8 {}\n\n/card9 {}\n\n".format(my_hand[0], my_hand[1], my_hand[2], my_hand[3],my_hand[4], my_hand[5], my_hand[6], my_hand[7], my_hand[8]))
+            return
+
+        if len(my_hand) == 8:
+            msg(int(player),"myHand", "/card1 {}\n\n/card2 {}\n\n/card3 {}\n\n/card4 {}\n\n/card5 {}\n\n/card6 {}\n\n/card7 {}\n\n/card8 {}\n\n".format(my_hand[0], my_hand[1], my_hand[2], my_hand[3],my_hand[4], my_hand[5], my_hand[6], my_hand[7]))
+            return
+
+        msg(int(player),"myHand", "/card1 {}\n\n/card2 {}\n\n/card3 {}\n\n/card4 {}\n\n/card5 {}\n\n/card6 {}\n\n/card7 {}\n\n/card8 {}\n\n/card9 {}\n\n/card10 {}\n\n".format(my_hand[0], my_hand[1], my_hand[2], my_hand[3],my_hand[4], my_hand[5], my_hand[6], my_hand[7], my_hand[8], my_hand[9]))
 
     def pick_black_card(self):
         pass
@@ -144,6 +154,7 @@ class Game():
             self.create_hands(message)
             for player in db.game[db.user[message.chat.id]["room"]]["players"]:
                 msg(player,"testMsg")
+                self.show_my_hand(player)
             #TODO: Прислать ведущему сообщение: вы теперь ведущий
 
             db.game[db.user[message.chat.id]["room"]]["status"] = statusGame["turn"]
