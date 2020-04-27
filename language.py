@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#TODO: перевести новые статусы из русского в англ.
 txt={
 	"default":{
 		"chooseLanguage":"*Choose language:*\n\n/en — English\n/ru — Русский"
@@ -17,8 +18,11 @@ txt={
 		"chooseWinnerOrSkip":"Сначала выберите победителя или пропустите карту",
 		"firstTable":"Меню ведущего:\n\n/black\_card — Вытянуть черную карту\n/end\_game — Закончить игру",
 		"gameEnded": "Игра завершена",
-		"testMsg": "Вам разадли на руку 10 белых карт. Используйте их для ответа на черную карту. Сейчас покажу вашу руку!",
-		"myHand":"Ваши белые карты:\n\n"
+		"testMsg": "Вам раздали на руку 10 белых карт. Используйте их для ответа на черную карту. Сейчас покажу вашу руку!",
+		"myHand":"Ваши белые карты:\n\n",
+		"blackCardPicked": "Вы вытянули Черную карту: ",
+		"wachterMenuTurnStart": "Утвердите или пропустите карту. Вы можете показать ее другим игрокам.\n\nМеню ведущего:\n/show\_black\_card - Показать черную карту игрокам\n/skip\_black\_card - Пропустить черную карту\n/end\_game - Закончить игру",
+		"testMsg2": "Все работает",
 	},
 	"en":{
 		"hello":"Hi!\n\n/create — Create a room\n/join — Join a room\n\n/lang — Change language",
@@ -34,4 +38,4 @@ txt={
 		"chooseWinnerOrSkip":"You need to choose winner or skip",
 	}
 }
-#TODO: перевести новые статусы из русского в англ.
+

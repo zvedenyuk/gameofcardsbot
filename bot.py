@@ -108,8 +108,6 @@ class Game():
 
         self.wachterCounter=(self.wachterCounter+1)%len(db.game[db.user[message.chat.id]["room"]]["players"])
         '''
-    def check_card_hands_trash(self, card_type):
-        pass
 
     def create_hands(self, message):
         cardsOnHands = []
@@ -135,8 +133,13 @@ class Game():
 
         msg(int(player),"myHand", "/card1 {}\n\n/card2 {}\n\n/card3 {}\n\n/card4 {}\n\n/card5 {}\n\n/card6 {}\n\n/card7 {}\n\n/card8 {}\n\n/card9 {}\n\n/card10 {}\n\n".format(my_hand[0], my_hand[1], my_hand[2], my_hand[3],my_hand[4], my_hand[5], my_hand[6], my_hand[7], my_hand[8], my_hand[9]))
 
-    def pick_black_card(self):
-        pass
+    def pick_black_card(self, wachter):
+        db.load_game(wachter)
+        availableBlackCardsDeck = setdiff1d(cards["cah"]["black"], db.game["trashBlack"])
+        blackCardPicked = random.choice(availableBlackCardsDeck)
+        db.game["table"]["black"] = blackCardPicked
+        msg(wachter, "blackCardPicked", blackCardPicked)
+        db.save_game(wachter)
 
     def switch_black_card(self):
         pass
@@ -155,15 +158,18 @@ class Game():
             for player in db.game[db.user[message.chat.id]["room"]]["players"]:
                 msg(player,"testMsg")
                 self.show_my_hand(player)
-            #TODO: Прислать ведущему сообщение: вы теперь ведущий
-
             db.game[db.user[message.chat.id]["room"]]["status"] = statusGame["turn"]
-            bot.register_next_step_handler(message, game.turn)
+            db.save_game(message.chat.id)
+            db.save_user(message.chat.id)
+            self.turn(message)
 
         if db.game[db.user[message.chat.id]["room"]]["status"] == statusGame["turn"]:
-            pass
-
-            # game.update_wachter_counter()
+            self.pick_black_card(db.game[db.user[message.chat.id]["room"]]["wachter"])
+            msg(db.game[db.user[message.chat.id]["room"]]["wachter"], "wachterMenuTurnStart")
+            # TODO: Прислать ведущему сообщение: вы теперь ведущий
+            bot.register_next_step_handler(message, main)
+            #TODO: check if it works correctly
+            self.update_wachter_counter()
 
 
             # нужно дописать случай 1й раздачи
@@ -236,6 +242,8 @@ def main(message):
         #тут начинается игра. Сообщение ниже высылаю для теста, можно удалить
         msg(message.chat.id, "firstTable")
         bot.register_next_step_handler(message, game.turn)
+    # elif db.game[db.user[message.chat.id]["room"]]["status"]=="turn":
+    #     msg()
 
 def change_language(message):
     if message.text=="/en" or message.text=="/ru":
